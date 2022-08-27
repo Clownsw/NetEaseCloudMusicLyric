@@ -1,0 +1,2 @@
+# NetEaseCloudMusicLyric
+NetEaseCloudMusicLyric
