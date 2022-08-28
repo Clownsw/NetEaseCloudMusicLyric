@@ -1,5 +1,8 @@
+import { createRequire } from "https://deno.land/std@0.153.0/node/module.ts";
+const require = createRequire(import.meta.url);
 var CryptoJS = require("crypto-js");
 
+var result;
 var bitsPerDigit = 16
 var biHalfRadix = 32768
 var maxDigits = 131
@@ -73,7 +76,7 @@ var buV1x = function (chL0x) {
 function BarrettMu_modulo(a) {
     var i, b = biDivideByRadixPower(a, this.k - 1), c = biMultiply(b, this.mu), d = biDivideByRadixPower(c, this.k + 1), e = biModuloByRadixPower(a, this.k + 1), f = biMultiply(d, this.modulus), g = biModuloByRadixPower(f, this.k + 1), h = biSubtract(e, g);
     for (h.isNeg && (h = biAdd(h, this.bkplus1)),
-        i = biCompare(h, this.modulus) >= 0; i;)
+             i = biCompare(h, this.modulus) >= 0; i;)
         h = biSubtract(h, this.modulus),
             i = biCompare(h, this.modulus) >= 0;
     return h
@@ -87,11 +90,11 @@ function BarrettMu_multiplyMod(a, b) {
 function BarrettMu_powMod(a, b) {
     var d, e, c = new BigInt;
     for (c.digits[0] = 1,
-        d = a,
-        e = b; ;) {
+             d = a,
+             e = b; ;) {
         if (0 != (1 & e.digits[0]) && (c = this.multiplyMod(c, d)),
             e = biShiftRight(e, 1),
-            0 == e.digits[0] && 0 == biHighIndex(e))
+        0 == e.digits[0] && 0 == biHighIndex(e))
             break;
         d = this.multiplyMod(d, d)
     }
@@ -105,11 +108,11 @@ function encryptedString(a, b) {
     for (; 0 != c.length % a.chunkSize;)
         c[e++] = 0;
     for (f = c.length,
-        g = "",
-        e = 0; f > e; e += a.chunkSize) {
+             g = "",
+             e = 0; f > e; e += a.chunkSize) {
         for (j = new BigInt,
-            h = 0,
-            i = e; i < e + a.chunkSize; ++h)
+                 h = 0,
+                 i = e; i < e + a.chunkSize; ++h)
             j.digits[h] = c[i++],
                 j.digits[h] += c[i++] << 8;
         k = a.barrett.powMod(j, a.e),
@@ -120,12 +123,13 @@ function encryptedString(a, b) {
 }
 
 function biMultiply(a, b) {
+    var j;
     var d, h, i, k, c = new BigInt, e = biHighIndex(a), f = biHighIndex(b);
     for (k = 0; f >= k; ++k) {
         for (d = 0,
-            i = k,
-            j = 0; e >= j; ++j,
-            ++i)
+                 i = k,
+                 j = 0; e >= j; ++j,
+                 ++i)
             h = c.digits[i] + a.digits[j] * b.digits[k] + d,
                 c.digits[i] = h & maxDigitVal,
                 d = h >>> biRadixBits;
@@ -166,7 +170,7 @@ function digitToHex(a) {
 function biToHex(a) {
     var d, b = "";
     for (biHighIndex(a),
-        d = biHighIndex(a); d > -1; --d)
+             d = biHighIndex(a); d > -1; --d)
         b += digitToHex(a.digits[d]);
     return b
 }
@@ -174,11 +178,11 @@ function biToHex(a) {
 function biShiftRight(a, b) {
     var e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, c, d.digits, 0, a.digits.length - c),
-        e = b % bitsPerDigit,
-        f = bitsPerDigit - e,
-        g = 0,
-        h = g + 1; g < d.digits.length - 1; ++g,
-        ++h)
+             e = b % bitsPerDigit,
+             f = bitsPerDigit - e,
+             g = 0,
+             h = g + 1; g < d.digits.length - 1; ++g,
+             ++h)
         d.digits[g] = d.digits[g] >>> e | (d.digits[h] & lowBitMasks[e]) << f;
     return d.digits[d.digits.length - 1] >>>= e,
         d.isNeg = a.isNeg,
@@ -193,8 +197,8 @@ function biAdd(a, b) {
             b.isNeg = !b.isNeg;
     else {
         for (c = new BigInt,
-            d = 0,
-            f = 0; f < a.digits.length; ++f)
+                 d = 0,
+                 f = 0; f < a.digits.length; ++f)
             e = a.digits[f] + b.digits[f] + d,
                 c.digits[f] = 65535 & e,
                 d = Number(e >= biRadix);
@@ -206,9 +210,9 @@ function biAdd(a, b) {
 function biMultiplyDigit(a, b) {
     var c, d, e, f;
     for (result = new BigInt,
-        c = biHighIndex(a),
-        d = 0,
-        f = 0; c >= f; ++f)
+             c = biHighIndex(a),
+             d = 0,
+             f = 0; c >= f; ++f)
         e = result.digits[f] + a.digits[f] * b + d,
             result.digits[f] = e & maxDigitVal,
             d = e >>> biRadixBits;
@@ -246,18 +250,18 @@ function biSubtract(a, b) {
             b.isNeg = !b.isNeg;
     else {
         for (c = new BigInt,
-            e = 0,
-            f = 0; f < a.digits.length; ++f)
+                 e = 0,
+                 f = 0; f < a.digits.length; ++f)
             d = a.digits[f] - b.digits[f] + e,
                 c.digits[f] = 65535 & d,
-                c.digits[f] < 0 && (c.digits[f] += biRadix),
+            c.digits[f] < 0 && (c.digits[f] += biRadix),
                 e = 0 - Number(0 > d);
         if (-1 == e) {
             for (e = 0,
-                f = 0; f < a.digits.length; ++f)
+                     f = 0; f < a.digits.length; ++f)
                 d = 0 - c.digits[f] + e,
                     c.digits[f] = 65535 & d,
-                    c.digits[f] < 0 && (c.digits[f] += biRadix),
+                c.digits[f] < 0 && (c.digits[f] += biRadix),
                     e = 0 - Number(0 > d);
             c.isNeg = !a.isNeg
         } else
@@ -269,19 +273,19 @@ function biSubtract(a, b) {
 function arrayCopy(a, b, c, d, e) {
     var g, h, f = Math.min(b + e, a.length);
     for (g = b,
-        h = d; f > g; ++g,
-        ++h)
+             h = d; f > g; ++g,
+             ++h)
         c[h] = a[g]
 }
 
 function biShiftLeft(a, b) {
     var e, f, g, h, c = Math.floor(b / bitsPerDigit), d = new BigInt;
     for (arrayCopy(a.digits, 0, d.digits, c, d.digits.length - c),
-        e = b % bitsPerDigit,
-        f = bitsPerDigit - e,
-        g = d.digits.length - 1,
-        h = g - 1; g > 0; --g,
-        --h)
+             e = b % bitsPerDigit,
+             f = bitsPerDigit - e,
+             g = d.digits.length - 1,
+             h = g - 1; g > 0; --g,
+             --h)
         d.digits[g] = d.digits[g] << e & maxDigitVal | (d.digits[h] & highBitMasks[e]) >>> f;
     return d.digits[0] = d.digits[g] << e & maxDigitVal,
         d.isNeg = a.isNeg,
@@ -298,45 +302,45 @@ function biDivideModulo(a, b) {
             g = biSubtract(b, a),
             a.isNeg = !0,
             b.isNeg = e) : (f = new BigInt,
-                g = biCopy(a)),
+            g = biCopy(a)),
             new Array(f, g);
     for (f = new BigInt,
-        g = a,
-        h = Math.ceil(d / bitsPerDigit) - 1,
-        i = 0; b.digits[h] < biHalfRadix;)
+             g = a,
+             h = Math.ceil(d / bitsPerDigit) - 1,
+             i = 0; b.digits[h] < biHalfRadix;)
         b = biShiftLeft(b, 1),
             ++i,
             ++d,
             h = Math.ceil(d / bitsPerDigit) - 1;
     for (g = biShiftLeft(g, i),
-        c += i,
-        j = Math.ceil(c / bitsPerDigit) - 1,
-        k = biMultiplyByRadixPower(b, j - h); -1 != biCompare(g, k);)
+             c += i,
+             j = Math.ceil(c / bitsPerDigit) - 1,
+             k = biMultiplyByRadixPower(b, j - h); -1 != biCompare(g, k);)
         ++f.digits[j - h],
             g = biSubtract(g, k);
     for (l = j; l > h; --l) {
         for (m = l >= g.digits.length ? 0 : g.digits[l],
-            n = l - 1 >= g.digits.length ? 0 : g.digits[l - 1],
-            o = l - 2 >= g.digits.length ? 0 : g.digits[l - 2],
-            p = h >= b.digits.length ? 0 : b.digits[h],
-            q = h - 1 >= b.digits.length ? 0 : b.digits[h - 1],
-            f.digits[l - h - 1] = m == p ? maxDigitVal : Math.floor((m * biRadix + n) / p),
-            r = f.digits[l - h - 1] * (p * biRadix + q),
-            s = m * biRadixSquared + (n * biRadix + o); r > s;)
+                 n = l - 1 >= g.digits.length ? 0 : g.digits[l - 1],
+                 o = l - 2 >= g.digits.length ? 0 : g.digits[l - 2],
+                 p = h >= b.digits.length ? 0 : b.digits[h],
+                 q = h - 1 >= b.digits.length ? 0 : b.digits[h - 1],
+                 f.digits[l - h - 1] = m == p ? maxDigitVal : Math.floor((m * biRadix + n) / p),
+                 r = f.digits[l - h - 1] * (p * biRadix + q),
+                 s = m * biRadixSquared + (n * biRadix + o); r > s;)
             --f.digits[l - h - 1],
                 r = f.digits[l - h - 1] * (p * biRadix | q),
                 s = m * biRadix * biRadix + (n * biRadix + o);
         k = biMultiplyByRadixPower(b, l - h - 1),
             g = biSubtract(g, biMultiplyDigit(k, f.digits[l - h - 1])),
-            g.isNeg && (g = biAdd(g, k),
-                --f.digits[l - h - 1])
+        g.isNeg && (g = biAdd(g, k),
+            --f.digits[l - h - 1])
     }
     return g = biShiftRight(g, i),
         f.isNeg = a.isNeg != e,
-        a.isNeg && (f = e ? biAdd(f, bigOne) : biSubtract(f, bigOne),
-            b = biShiftRight(b, i),
-            g = biSubtract(b, g)),
-        0 == g.digits[0] && 0 == biHighIndex(g) && (g.isNeg = !1),
+    a.isNeg && (f = e ? biAdd(f, bigOne) : biSubtract(f, bigOne),
+        b = biShiftRight(b, i),
+        g = biSubtract(b, g)),
+    0 == g.digits[0] && 0 == biHighIndex(g) && (g.isNeg = !1),
         new Array(f, g)
 }
 function biDivide(a, b) {
@@ -384,8 +388,8 @@ function hexToDigit(a) {
 function biFromHex(a) {
     var d, e, b = new BigInt, c = a.length;
     for (d = c,
-        e = 0; d > 0; d -= 4,
-        ++e)
+             e = 0; d > 0; d -= 4,
+             ++e)
         b.digits[e] = hexToDigit(a.substr(Math.max(d - 4, 0), Math.min(d, 4)));
     return b
 }
@@ -428,9 +432,9 @@ function b(a, b) {
         , d = CryptoJS.enc.Utf8.parse("0102030405060708")
         , e = CryptoJS.enc.Utf8.parse(a)
         , f = CryptoJS.AES.encrypt(e, c, {
-            iv: d,
-            mode: CryptoJS.mode.CBC
-        });
+        iv: d,
+        mode: CryptoJS.mode.CBC
+    });
     return f.toString()
 }
 
@@ -462,13 +466,6 @@ function start(musicId) {
     });
 }
 
-console.log(start(22845491));
-
-// curl 'https://music.163.com/weapi/song/lyric?csrf_token=' \
-//   -H 'authority: music.163.com' \
-//   -H 'accept: */*' \
-//   -H 'accept-language: zh-CN,zh;q=0.9,en;q=0.8' \
-//   -H 'content-type: application/x-www-form-urlencoded' \
-//   -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36' \
-//   --data-raw 'params=APht7bmNe0BuC6JgNGkPUaNzU6ks68KTCOOIyL12ksJhmPZBYvc4So5AfFolo6Vxmyedi8P6lF9KOASr21OMpqhdZ7sKWUn8ys%2FDnp1oyhQjYcLzUoF8ZPOYyhrzUArl&encSecKey=22d7e6a8e4e8d4d00971fdd8f3aa56dea48362567d5cb8ceaa63bcc91eb62036ee3646a6b82bf6fe5a4c20ed52f930a204a90f1ca39c0e47f4c2bec1bbd69d848ba216928859b8568fadef4a88c902340e9df23a9e71ac191b5efe188a7745e691f74bd739dcf90c1853c63587b10aed5c16144d264c808e92a11e22ecd00c17' \
-//   --compressed
+export {
+    start
+}
