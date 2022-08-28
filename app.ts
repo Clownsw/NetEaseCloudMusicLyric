@@ -33,9 +33,8 @@ class LyricResource extends Drash.Resource {
                 },
                 body: start(songId),
             })
-            return response.json({
-                lryic: await lyricResp.json(),
-            })
+            let lyricRespJson = await lyricResp.json();
+            return response.send<string>('text/plain; charset=utf8', lyricRespJson.lrc.lyric);
         }
     }
 }
