@@ -1,1 +1,1 @@
-deno run --allow-read --allow-env --allow-net --unstable app.ts
+deno run --allow-all --unstable --watch app.ts app.ts
