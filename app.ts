@@ -1,10 +1,24 @@
 import * as Drash from "https://deno.land/x/drash@v2.7.0/mod.ts";
 import { start } from './common.js';
+import { musicInfoToNameAndAuthor } from "./parse.js";
 import { createErrorResponse, createErrorResponseMessage, createSuccessResponseData } from "./responseUtil.ts";
 
 type Track = {
     name: string,
     id: number,
+};
+
+type MusicInfo = {
+    id: number,
+    url: string,
+};
+
+type Music = {
+    name: string,
+    artist: string,
+    url: string,
+    cover: string,
+    lrc: string,
 };
 
 class HomeResource extends Drash.Resource {
@@ -57,11 +71,50 @@ class MusicGroupResource extends Drash.Resource {
         const apiResponseJson = await apiResponse.json();
 
         try {
+            // 解析出歌单内所有音乐ID
             const tracks: Array<Track> = apiResponseJson.playlist.tracks;
             const ids: Array<number> = tracks.map((track) => {
                 return track.id;
             });
-            createSuccessResponseData(response, ids);
+
+            // 解析出歌单所有URL
+            let reqUrl = "";
+            ids.map((id) => {
+                reqUrl += id + ','
+            });
+            reqUrl = reqUrl.substring(0, reqUrl.lastIndexOf(','));
+            const r = await fetch(`http://localhost:3000/song/url?id=${reqUrl}`)
+            const rJson = await r.json();
+            const data: Array<MusicInfo> = rJson.data;
+            const urls: Array<string> = data.map((v) => {
+                return v.url;
+            });
+
+            let len = ids.length;
+
+            if (ids.length !== reqUrl.length) {
+                len = ids.length > reqUrl.length ? reqUrl.length : ids.length;
+            }
+
+            const musics: Array<Music> = [];
+            for (let i = 0; i < len; i++) {
+                if (urls[i] === null) {
+                    continue;
+                }
+
+                const r = await fetch(`http://localhost:3000/song/detail?ids=${ids[i]}`);
+                const tmp = musicInfoToNameAndAuthor(await r.json());
+
+                musics.push({
+                    name: tmp.name,
+                    artist: tmp.author,
+                    url: urls[i],
+                    cover: tmp.cover,
+                    lrc: `https://music.api.smilex.cn/lyric?songId=${ids[i]}`,
+                });
+            }
+
+            createSuccessResponseData(response, musics);
         } catch (error) {
             createErrorResponseMessage(response, error);
             return;
