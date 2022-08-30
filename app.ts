@@ -1,10 +1,16 @@
 import * as Drash from "https://deno.land/x/drash@v2.7.0/mod.ts";
-import {start} from './common.js';
+import { start } from './common.js';
+import { createErrorResponse, createErrorResponseMessage, createSuccessResponseData } from "./responseUtil.ts";
+
+type Track = {
+    name: string,
+    id: number,
+};
 
 class HomeResource extends Drash.Resource {
     public paths = ["/"];
 
-    public GET(request: Drash.Request, response: Drash.Response): void {
+    public GET(_request: Drash.Request, response: Drash.Response): void {
         return response.json({
             welcome: 'https://smilex.cn/',
         });
@@ -21,7 +27,7 @@ class LyricResource extends Drash.Resource {
                 error: 'Not Found songId',
             })
         } else {
-            let lyricResp = await fetch("https://music.163.com/weapi/song/lyric?csrf_token=", {
+            const lyricResp = await fetch("https://music.163.com/weapi/song/lyric?csrf_token=", {
                 method: 'POST',
                 headers: {
                     'authority': 'music.163.com',
@@ -32,8 +38,33 @@ class LyricResource extends Drash.Resource {
                 },
                 body: start(songId),
             })
-            let lyricRespJson = await lyricResp.json();
+            const lyricRespJson = await lyricResp.json();
             return response.send<string>('text/plain; charset=utf8', lyricRespJson.lrc.lyric);
+        }
+    }
+}
+
+class MusicGroupResource extends Drash.Resource {
+    public paths = ["/playlist"];
+
+    public async GET(request: Drash.Request, response: Drash.Response): Promise<void> {
+        const id = request.queryParam("id");
+        if (id === undefined) {
+            createErrorResponse(response);
+            return;
+        }
+        const apiResponse = await fetch(`http://localhost:3000/playlist/detail?id=${id}`);
+        const apiResponseJson = await apiResponse.json();
+
+        try {
+            const tracks: Array<Track> = apiResponseJson.playlist.tracks;
+            const ids: Array<number> = tracks.map((track) => {
+                return track.id;
+            });
+            createSuccessResponseData(response, ids);
+        } catch (error) {
+            createErrorResponseMessage(response, error);
+            return;
         }
     }
 }
@@ -42,9 +73,8 @@ const server = new Drash.Server({
     hostname: "localhost",
     port: 1447,
     protocol: "http",
-    resources: [HomeResource, LyricResource],
+    resources: [HomeResource, LyricResource, MusicGroupResource],
 });
 
 server.run();
-
 console.log(`Server running at ${server.address}.`);
