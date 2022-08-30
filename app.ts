@@ -67,10 +67,10 @@ class MusicGroupResource extends Drash.Resource {
             createErrorResponse(response);
             return;
         }
-        const apiResponse = await fetch(`http://localhost:3000/playlist/detail?id=${id}`);
-        const apiResponseJson = await apiResponse.json();
-
         try {
+            const apiResponse = await fetch(`http://localhost:3000/playlist/detail?id=${id}`);
+            const apiResponseJson = await apiResponse.json();
+
             // 解析出歌单内所有音乐ID
             const tracks: Array<Track> = apiResponseJson.playlist.tracks;
             const ids: Array<number> = tracks.map((track) => {
@@ -116,8 +116,7 @@ class MusicGroupResource extends Drash.Resource {
 
             createSuccessResponseData(response, musics);
         } catch (error) {
-            createErrorResponseMessage(response, error);
-            return;
+            createErrorResponseMessage(response, error.toString());
         }
     }
 }

@@ -37,7 +37,10 @@ function createErrorRepsonseAll(response: Drash.Response, headers: Headers | nul
 }
 
 function createErrorResponseMessage(response: Drash.Response, message: string): void {
-    createErrorRepsonseAll(response, null, message, null);
+    createErrorRepsonseAll(response, null, {
+        code: defaultErrorCode,
+        message
+    }, null);
 }
 
 // deno-lint-ignore ban-types
