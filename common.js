@@ -1,6 +1,8 @@
-import { createRequire } from "https://deno.land/std@0.153.0/node/module.ts";
-const require = createRequire(import.meta.url);
-var CryptoJS = require("./crypto-js");
+// import { createRequire } from "https://deno.land/std@0.153.0/node/module.ts";
+// const require = createRequire(import.meta.url);
+// var CryptoJS = require("./crypto-js");
+
+import CryptoJS from "npm:crypto-js";
 
 var result;
 var bitsPerDigit = 16
